@@ -1,0 +1,59 @@
+import { useState } from "react";
+
+export default function TTSApp() {
+  const [text, setText] = useState("");
+  const [voice, setVoice] = useState("en-US-Wavenet-D");
+  const [speed, setSpeed] = useState(1);
+  const [audioUrl, setAudioUrl] = useState("");
+
+  const generateSpeech = async () => {
+    const response = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice, speed }),
+    });
+    const data = await response.json();
+    setAudioUrl(data.audioUrl);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <h1 className="text-2xl font-bold text-gray-800">Text-to-Speech Converter</h1>
+      <textarea
+        className="w-full h-32 p-2 border rounded-lg mt-4"
+        placeholder="Enter text here..."
+        onChange={(e) => setText(e.target.value)}
+      />
+      <select className="mt-2 p-2 border rounded" onChange={(e) => setVoice(e.target.value)}>
+        <option value="en-US-Wavenet-D">English (US) - Male</option>
+        <option value="en-US-Wavenet-F">English (US) - Female</option>
+        <option value="en-GB-Wavenet-D">English (UK) - Male</option>
+      </select>
+      <input
+        type="range"
+        min="0.5"
+        max="2"
+        step="0.1"
+        value={speed}
+        onChange={(e) => setSpeed(e.target.value)}
+        className="w-full mt-2"
+      />
+      <button
+        onClick={generateSpeech}
+        className="bg-blue-500 text-white p-2 mt-2 rounded-lg w-full"
+      >
+        Convert to Speech
+      </button>
+      {audioUrl && (
+        <div className="mt-4">
+          <audio controls className="w-full">
+            <source src={audioUrl} type="audio/mp3" />
+          </audio>
+          <a href={audioUrl} download="speech.mp3" className="block mt-2 text-blue-600">
+            Download Audio
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
